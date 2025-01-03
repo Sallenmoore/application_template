@@ -1,8 +1,8 @@
 from flask import request
 
 from autonomous import log
+from autonomous.models.automodel import AutoModel
 from models.user import User
-from models.world import World
 
 
 def loader(
@@ -36,12 +36,9 @@ def loader(
         user = User.get(user)
     # log(user)
     # get obj
-    obj = World.get_model(
+    obj = AutoModel.get_model(
         model or request_data.get("model", None), pk or request_data.get("pk", None)
     )
     # log(obj)
     # get world
-    world = obj.get_world() if obj else None
-    macro = macro or request_data.get("macro", None)
-    module = module or request_data.get("module", None)
-    return user, obj, world, macro, module
+    return user, obj

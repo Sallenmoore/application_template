@@ -1,3 +1,0 @@
-Why do Python programmers prefer the dark mode?
-
-Because light attracts bugs!

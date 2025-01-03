@@ -5,19 +5,13 @@
 
 """
 
-import os
 import random
 
-import requests
-from flask import Blueprint, get_template_attribute, request
-from jinja2 import TemplateNotFound
+from flask import Blueprint, get_template_attribute
 
 from autonomous import log
-from models.campaign.campaign import Campaign
-from models.world import World
 
 from ._utilities import loader as _loader
-from .campaign import index as campaign_endpoint
 
 index_endpoint = Blueprint("page", __name__)
 
@@ -33,9 +27,7 @@ index_endpoint = Blueprint("page", __name__)
     ),
 )
 def login():
-    worlds = World.all()
-    worlds = random.sample(worlds, 4) if len(worlds) > 4 else worlds
-    return get_template_attribute("login.html", "login")(worlds=worlds)
+    return get_template_attribute("login.html", "login")()
 
 
 @index_endpoint.route(
@@ -48,5 +40,3 @@ def login():
 def home():
     user, *_ = _loader()
     return get_template_attribute("home.html", "home")(user)
-
-

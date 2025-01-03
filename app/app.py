@@ -36,7 +36,6 @@ import os
 
 from config import Config
 from flask import Flask, json, render_template, request, url_for
-from views.admin import admin_page
 from views.auth import auth_page
 from views.index import index_page
 from werkzeug.exceptions import HTTPException
@@ -62,7 +61,6 @@ def create_app():
         app.jinja_env.add_extension("jinja2.ext.debug")
 
     # Configure Filters
-
 
     # Configure Routes
     @app.route("/favicon.ico")

@@ -9,12 +9,10 @@ from autonomous.model.automodel import AutoModel
 from autonomous.tasks import AutoTasks
 from models.user import User
 
+
 def create_app():
     app = Flask(os.getenv("APP_NAME", __name__))
     app.config.from_object(Config)
-
-    app.jinja_env.filters["bonus"] = bonus
-    app.jinja_env.filters["roll_dice"] = roll_dice
 
     # Configure Routes
     @app.route(
@@ -65,3 +63,5 @@ def create_app():
             .result
         )
         return get_template_attribute("shared/_tasks.html", "checktask")(task["id"])
+
+    return app
