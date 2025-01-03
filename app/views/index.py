@@ -12,12 +12,6 @@ from flask import (
 
 from autonomous import log
 from autonomous.auth import AutoAuth, auth_required
-from models.autogm.autogminitiative import AutoGMInitiative
-from models.autogm.autogmmessage import AutoGMMessage
-from models.autogm.autogmscene import AutoGMScene
-from models.images.image import Image
-from models.ttrpgobject.faction import Faction
-from models.world import World
 
 index_page = Blueprint("index", __name__)
 
@@ -47,102 +41,6 @@ def index():
     user = AutoAuth.current_user()
     session["page"] = "/home"
     return render_template("index.html", user=user, page_url="/home")
-
-
-@index_page.route(
-    "/<string:model>/<string:pk>/gm",
-    methods=(
-        "GET",
-        "POST",
-    ),
-)
-@auth_required()
-def autogm(model, pk):
-    user = AutoAuth.current_user()
-    obj = World.get_model(model, pk)
-    content = "<p>You do not have permission to alter this object<p>"
-    if _authenticate(user, obj):
-        args = request.json if request.method == "POST" else dict(request.args)
-        content = requests.post(
-            f"http://api:{os.environ.get('COMM_PORT')}/autogm/{pk}", json=args
-        ).text
-    return render_template("index.html", user=user, obj=obj, page_content=content)
-
-
-@index_page.route(
-    "/image/<string:pk>/<string:size>",
-    methods=("GET",),
-)
-def image(pk, size):
-    img = Image.get(pk)
-    if img and img.data:
-        img_data = img.resize(size) if size != "orig" else img.read()
-        # log(img_data)
-        return Response(
-            img_data,
-            mimetype=img.data.content_type,
-            headers={"Content-Disposition": f"inline; filename={img.pk}.webp"},
-        )
-    else:
-        return Response("No image available", status=404)
-
-
-@index_page.route(
-    "/audio/<string:pk>",
-    methods=("GET",),
-)
-@index_page.route(
-    "/audio/gm/<string:pk>",
-    methods=("GET",),
-)
-@index_page.route(
-    "/audio/gm/combat/<string:pk>",
-    methods=("GET",),
-)
-@index_page.route(
-    "/audio/gm/roll/<string:pk>",
-    methods=("GET",),
-)
-def audio(pk):
-    if "combat" in request.url:
-        audio = AutoGMInitiative.get(pk).audio
-    elif "roll" in request.url:
-        audio = AutoGMScene.get(pk).roll_audio
-    elif "gm" in request.url:
-        audio = AutoGMScene.get(pk).audio
-    else:
-        audio = AutoGMMessage.get(pk).audio
-    # log(msg)
-    if audio:
-        return Response(
-            audio.read(),
-            mimetype=audio.content_type,
-            headers={"Content-Disposition": f"inline; filename={pk}.mp3"},
-        )
-    else:
-        return Response("No audio available", status=404)
-
-
-@index_page.route(
-    "/manage/<string:model>/<string:pk>",
-    methods=(
-        "GET",
-        "POST",
-    ),
-)
-@auth_required()
-def manage(model, pk):
-    user = AutoAuth.current_user()
-    obj = World.get_model(model, pk)
-    content = "<p>You do not have permission to alter this object<p>"
-    if _authenticate(user, obj):
-        args = request.json if request.method == "POST" else dict(request.args)
-        args["user"] = str(user.pk)
-        content = requests.post(
-            f"http://api:{os.environ.get('COMM_PORT')}/manage/{model}/{pk}", json=args
-        ).text
-    return render_template("index.html", user=user, obj=obj, page_content=content)
-
 
 @index_page.route("/<string:model>/<string:pk>", methods=("GET", "POST"))
 @index_page.route("/<string:model>/<string:pk>/<path:page>", methods=("GET", "POST"))

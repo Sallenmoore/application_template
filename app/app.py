@@ -39,7 +39,6 @@ from flask import Flask, json, render_template, request, url_for
 from views.admin import admin_page
 from views.auth import auth_page
 from views.index import index_page
-from filters.utils import roll_dice, bonus
 from werkzeug.exceptions import HTTPException
 
 from autonomous import log
@@ -63,8 +62,7 @@ def create_app():
         app.jinja_env.add_extension("jinja2.ext.debug")
 
     # Configure Filters
-    app.jinja_env.filters["roll_dice"] = roll_dice
-    app.jinja_env.filters["bonus"] = bonus
+
 
     # Configure Routes
     @app.route("/favicon.ico")
@@ -87,7 +85,6 @@ def create_app():
 
     # Register Blueprints
     app.register_blueprint(auth_page, url_prefix="/auth")
-    app.register_blueprint(admin_page, url_prefix="/admin")
     app.register_blueprint(index_page)
 
     return app
