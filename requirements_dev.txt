@@ -1,0 +1,7 @@
+##################################
+#           DEVELOPMENT          #
+##################################
+pytest
+pytest-cov
+setuptools
+build
