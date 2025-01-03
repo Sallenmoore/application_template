@@ -1,0 +1,42 @@
+{% macro login(worlds) -%}
+<div class="container">
+    <div class="row has-space-around">
+        <div class="column is-full is-vertically-centered">
+            <h2 class='has-text-center has-text-primary'>Login to build</h2>
+        </div>
+        <div class="column is-shrink">
+            <form action="/auth/login" method="post">
+                <input type="hidden" name="authprovider" value="google">
+                <button class="button is-primary" type="submit">
+                    with &ensp; <iconify-icon icon="devicon:google" width="50"></iconify-icon>
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% if worlds %}
+<hr>
+<h2> Or check out some user worlds...</h2>
+<div class="row has-space-around">
+    {% for world in worlds %}
+    <div class="column">
+        <a href="/{{world.path}}">
+            <div class="card has-bg-secondary">
+                <div class="card__header">
+                    <h4>{{world.name}}</h4>
+                </div>
+                <div class="card__image">
+                    {% if world.image %}
+                    <img src="{{world.image.url(size='medium')}}" alt="{{world.name}}">
+                    {% endif %}
+                </div>
+                <div class="card__content" style='text-decoration: none;'>
+                    {{world.backstory_summary | safe}}
+                </div>
+            </div>
+        </a>
+    </div>
+    {%endfor %}
+</div>
+{% endif %}
+{%- endmacro %}

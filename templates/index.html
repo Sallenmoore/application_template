@@ -1,0 +1,139 @@
+{% import "_nav.html" as nav %}
+{% import "shared/_title.html" as title %}
+<!doctype html>
+<html lang="en">
+
+    <head>
+        {% block head %}
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+        <meta charset="{{url_for('static', filename='images/favicon-32x32.png')}}">
+        <link rel="icon" href="data:,">
+        <link rel="apple-touch-icon" sizes="180x180"
+              href="{{url_for('static', filename='images/apple-touch-icon.png')}}">
+        <link rel="icon" type="image/png" sizes="32x32"
+              href="{{url_for('static', filename='images/favicon-32x32.png')}}">
+        <link rel="icon" type="image/png" sizes="16x16"
+              href="{{url_for('static', filename='images/favicon-16x16.png')}}">
+
+        <!--------------------------- Vendor CSS libs ---------------------------->
+
+        <!--------------------------- Custom CSS ---------------------------->
+        <!-- Compiled and minified CSS-->
+        <link rel="stylesheet" type="text/css"
+              href="{{ url_for('static', filename='style/main.css') }}">
+
+        <!--------------------------- Vendor JavaScript Libs ---------------------------->
+        <script
+                src="https://cdn.jsdelivr.net/npm/@tinymce/tinymce-webcomponent@2/dist/tinymce-webcomponent.min.js"></script>
+        <script src="{{ url_for('static', filename='js/tinymce/tinymce.min.js') }}"
+                referrerpolicy="origin"></script>
+        <script src="https://unpkg.com/htmx.org@1.9.11"
+                integrity="sha384-0gxUXCCR8yv9FM2b+U3FDbsKthCI66oH5IA9fHppQq9DDMHuMauqq1ZHBpJxQ0J0"
+                crossorigin="anonymous"></script>
+        <script src="https://unpkg.com/htmx.org@1.9.11/dist/ext/json-enc.js"></script>
+        <script src="https://code.iconify.design/iconify-icon/1.0.3/iconify-icon.min.js"></script>
+
+        <!------------------------------ Tailwind Libs ---------------------------->
+        {#
+        <script src="https://cdn.tailwindcss.com"></script>
+
+        <!-- configuration example -->
+        <script>
+            tailwind.config = {
+                theme: {
+                    extend: {
+                        colors: {
+                            primary: '#45576b',
+                        }
+                    }
+                }
+            }
+        </script>
+        <!-- customcss example -->
+        <style type="text/tailwindcss">
+            @layer utilities {
+              .content-auto {
+                content-visibility: auto;
+              }
+            }
+          </style>
+        <!--plugin example -->
+        <script
+                src="https://cdn.tailwindcss.com?plugins=forms,typography,aspect-ratio,line-clamp,container-queries"></script>
+        #}
+
+        <!-- JavaScript Libs -->
+        <script type="module" src="{{ url_for('static', filename='js/main.js') }}"></script>
+
+        {% endblock %}
+        {% block head_ext %}
+        {% endblock %}
+    </head>
+
+    <body hx-ext='json-enc' hx-vals='{
+                "user": "{%if user%}{{user.pk}}{%endif%}",
+                "model": "{%if obj%}{{obj.model_name().lower()}}{%endif%}",
+                "pk": "{%if obj%}{{obj.pk}}{%endif%}"
+            }'>
+        <div class="is-full" id="nav">
+            {% block topnav %}
+            {{nav.topnav(user)}}
+            {% endblock %}
+        </div>
+        <div class="container has-no-padding is-full" id="content">
+            <div id='page-container'
+                 class="container has-no-padding-top has-no-padding-left is-full is-mobile-full"
+                 style='position:relative;'>
+                {% if obj %}
+                {{title.object_title(user, obj)}}
+                {% endif %}
+                <div class="row has-no-padding-left slide-it-in">
+                    {% if obj %}
+                    <div class="column is-shrink is-mobile-shrink has-no-padding-left slide-it-in"
+                         style='position:absolute;top:0;left:0;'>
+                        <button id="mobile-menu-burger" class='button is-mobile-only'
+                                style='position:fixed; z-index:1002; border-radius:0 10px 10px 0;'>
+                            <iconify-icon icon="ci:hamburger-lg" width="1.5rem"></iconify-icon>
+                        </button>
+                        {{nav.sidemenu_active(user, obj)}}
+                    </div>
+                    {% endif %}
+                    <div class="column is-mobile-full" style='padding:0 3rem;'>
+                        {% if page_url %}
+                        <div class='panel has-bg-muted raise-it'
+                             style='border-radius: 0 0 5px 5px;' id="page-content"
+                             hx-get='/api{{page_url}}'
+                             hx-trigger='load'
+                             hx-indicator='#request-indicator'>
+                        </div>
+                        {% elif page_content %}
+                        <div class='panel has-bg-muted raise-it'
+                             style='border-radius: 0 0 5px 5px;' id="page-content">
+                            {{page_content | safe}}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="image htmx-indicator has-text-muted has-bg-screen" id="request-indicator">
+            <img src="/static/images/grid.svg" alt="loading">
+        </div>
+        <footer style="height: 4rem;">
+            <div class="row">
+                <div class="column">
+                    {% block footer %}{% endblock %}
+                </div>
+                <div class="column is-shrink is-end">
+                    <button class="button is-large is-circle" id="back-to-top"
+                            onclick="window.scrollTo({top: 0,behavior: 'smooth'});">
+                        <iconify-icon icon="bxs:to-top" width="1.5rem"
+                                      height="1.5rem"></iconify-icon>
+                    </button>
+                </div>
+            </div>
+        </footer>
+    </body>
+
+</html>

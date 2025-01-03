@@ -1,0 +1,232 @@
+{% import "shared/_form.html" as form_components %}
+{% import "shared/_display.html" as display_components %}
+{% import "shared/_abilities.html" as abilities_components %}
+
+
+{% macro info(user, obj) -%}
+<div class="panel has-bg-screen">
+    <div class="row has-space-around">
+        <div class="column is-shrink is-mobile-4">
+            <h4>STR</h4>
+            <p>{{obj.strength}} ({{(obj.strength|int-10)//2}})</p>
+        </div>
+        <div class="column is-shrink is-mobile-4">
+            <h4>DEX</h4>
+            <p>{{obj.dexterity}} ({{(obj.dexterity|int-10)//2}})</p>
+        </div>
+        <div class="column is-shrink is-mobile-4">
+            <h4>INT</h4>
+            <p>{{obj.intelligence}} ({{(obj.intelligence|int-10)//2}})</p>
+        </div>
+        <div class="column is-shrink is-mobile-4">
+            <h4>WIS</h4>
+            <p>{{obj.wisdom}} ({{(obj.wisdom|int-10)//2}})</p>
+        </div>
+        <div class="column is-shrink is-mobile-4">
+            <h4>CHA</h4>
+            <p>{{obj.charisma}} ({{(obj.charisma|int-10)//2}})</p>
+        </div>
+        <div class="column is-shrink is-mobile-4">
+            <h4>CON</h4>
+            <p>{{obj.constitution}} ({{(obj.constitution|int-10)//2}})</p>
+        </div>
+    </div>
+</div>
+<div class="row has-space-around">
+    <div class="column is-3 is-mobile-4">
+        <div id="current-hitpoints" class="panel has-bg-muted">
+            <h4 class="has-text-dark">Current HP</h4>
+            <input hx-get="/api/manage/character/hitpoints"
+                   hx-swap="none" hx-trigger="input delay:1s, change" type="number"
+                   value="{{obj.current_hitpoints}}" name="current_hitpoints">
+            <div class="row">
+                <div class="column is-shrink is-end">
+                    <button class="button is-small" hx-get="/api/manage/character/hitpoints"
+                            hx-target="#current-hitpoints" hx-select="#current-hitpoints"
+                            hx-swap="outerHTML">
+                        reset
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="column is-shrink is-mobile-4">
+        <h4 class='has-text-screen'>MAX HP</h4>
+        <p class="has-text-dark">{{obj.hitpoints}}</p>
+    </div>
+    <div class="column is-shrink is-mobile-4">
+        <h4 class='has-text-screen'>Occupation</h4>
+        <p class="has-text-dark">{{obj.occupation}}</p>
+    </div>
+    <div class="column is-shrink is-mobile-4">
+        <h4 class='has-text-screen'>Archetype (i.e. Class)</h4>
+        <p class="has-text-dark">{{obj.archetype}}</p>
+    </div>
+    <div class="column is-shrink is-mobile-4">
+        <h4 class='has-text-screen'>AC</h4>
+        <p class="has-text-dark">{{obj.ac}}</p>
+    </div>
+</div>
+<div class='row has-space-around'>
+    <div class="column is-shrink is-mobile-4">
+        <h4 class='has-text-screen'>Age</h4>
+        {% if obj.age %}
+        <p class="has-text-dark">{{obj.age}}</p>
+        {% else%}
+        <p class="has-text-dark">Unknown</p>
+        {% endif %}
+    </div>
+    <div class="column is-shrink is-mobile-4">
+        <h4 class='has-text-screen'>Species</h4>
+        <p class="has-text-dark">{{obj.species}}</p>
+    </div>
+    <div class="column is-shrink is-mobile-4">
+        <h4 class='has-text-screen'>Gender</h4>
+        <p class="has-text-dark">{{obj.gender}}</p>
+    </div>
+    <div class="column is-shrink is-mobile-4">
+        <h4 class='has-text-screen'>Status</h4>
+        <p class="has-text-dark">{{obj.status}}</p>
+    </div>
+    <div class="column is-6 is-mobile-6">
+        <h4 class='has-text-screen'>Voice</h4>
+        <p class="has-text-dark">{{obj.voice_description}}</p>
+    </div>
+</div>
+<hr>
+<div class="row">
+    <div class="column is-full">
+        <h3 class='has-text-center has-text-primary'>Goals and Secrets</h3>
+        <div class="panel has-bg-screen">
+            <p class='has-text-light'>{{obj.goal | safe}}</p>
+        </div>
+    </div>
+    {% if obj.abilities %}
+    <div id="model-abilities" class="column is-full">
+        {{abilities_components.abilities(user, obj)}}
+    </div>
+    {% endif %}
+    {% if obj.wealth or obj.items %}
+    <div id="model-wealth" class="column is-full">
+        <h4>Wealth</h4>
+        <div class="panel">
+            <div class="row">
+                {% for item in obj.items %}
+                <div class="column is-2">
+                    {{display_components.object_display(item, size='small', type=False)}}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        <div class="panel has-bg-primary">
+            {% for w in obj.wealth %}
+            <p>{{w | safe}}</p>
+            <hr>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{%- endmacro %}
+
+{% macro manage_details(user, obj) -%}
+<form hx-post="/api/manage/update"
+      hx-swap="none" hx-trigger="input delay:1s, change">
+    <div class="row has-space-between">
+        <div class="column">
+            <h4 class="has-text-center has-text-primary">STR</h4>
+            <input class="has-text-center" type="text" value="{{obj.strength}}" name="strength">
+        </div>
+        <div class="column ">
+            <h4 class="has-text-center has-text-primary">DEX</h4>
+            <input class="has-text-center" type="text" value="{{obj.dexterity}}" name="dexterity">
+        </div>
+        <div class="column ">
+            <h4 class="has-text-center has-text-primary">INT</h4>
+            <input class="has-text-center" type="text" value="{{obj.intelligence}}"
+                   name="intelligence">
+        </div>
+        <div class="column ">
+            <h4 class="has-text-center has-text-primary">WIS</h4>
+            <input class="has-text-center" type="text" value="{{obj.wisdom}}" name="wisdom">
+        </div>
+        <div class="column ">
+            <h4 class="has-text-center has-text-primary">CHA</h4>
+            <input class="has-text-center" type="text" value="{{obj.charisma}}" name="charisma">
+        </div>
+        <div class="column ">
+            <h4 class="has-text-center has-text-primary">CON</h4>
+            <input class="has-text-center" type="text" value="{{obj.constitution}}"
+                   name="constitution">
+        </div>
+    </div>
+    <hr>
+    <div class="row has-space-around">
+        <div class="column is-shrink ">
+            <h4 class='has-text-center has-text-primary' for="model-hitpoints">MAX HP</h4>
+            <input class="has-text-center" id="model-hitpoints" type="number"
+                   value="{{obj.hitpoints}}" name="hitpoints">
+        </div>
+        <div class="column is-shrink ">
+            <h4 class='has-text-center has-text-primary' for="model-ac">AC</h4>
+            <input class="has-text-center" id="model-ac" type="number"
+                   value="{{obj.ac}}" name="ac">
+        </div>
+        <div class="column is-shrink ">
+            <h4 class='has-text-center has-text-primary'>Player/NPC</h4>
+            <div class="is-select">
+                <select class="has-no-border" name="is_player">
+                    <option value="False">NPC</option>
+                    <option value="True" {%if obj.is_player%} selected {%endif%}>Player</option>
+                </select>
+            </div>
+        </div>
+        {% if obj.is_player %}
+        <div class="column is-shrink " id="dnd-beyond-id-input-container">
+            <h4 class='has-text-center has-text-primary'>D&DBeyond ID</h4>
+            <input type="text" value="{{obj.dnd_beyond_id}}" name="dnd_beyond_id">
+        </div>
+        {% endif %}
+    </div>
+    <div class="row has-space-between">
+        <div class="column is-2">
+            <h4 class='has-text-primary'>Species</h4>
+            <input type="text" value="{{obj.species}}" name="species">
+        </div>
+        <div class="column is-2">
+            <h4 class='has-text-primary'>Gender</h4>
+            <input type="text" value="{{obj.gender}}" name="gender">
+        </div>
+        <div class="column is-shrink">
+            <h4 class='has-text-center has-text-primary'>Age</h4>
+            <input class="has-text-center" type="number" value="{{obj.age}}" name="age">
+        </div>
+        <div class="column">
+            <h4 class='has-text-primary'>Occupation</h4>
+            <input type="text" value="{{obj.occupation}}" name="occupation">
+        </div>
+        <div class="column">
+            <h4 class='has-text-primary'>Archetype</h4>
+            <input type="text" value="{{obj.archetype}}" name="archetype">
+        </div>
+    </div>
+    <hr>
+    <div class="row">
+        <div class="column">
+            <h3 class='has-text-center has-text-primary'>Goals and Secrets</h3>
+            {{form_components.texteditor(user, obj, "goal")}}
+        </div>
+    </div>
+    <hr>
+    <div class="row">
+        <div id="model-wealth" class="column is-full">
+            <h3 class='has-text-center has-text-primary'>Wealth</h3>
+            {{form_components.listeditor(user, obj, "wealth")}}
+            <hr>
+        </div>
+        <div class="column is-full">
+            {{abilities_components.edit_abilities(user, obj)}}
+        </div>
+    </div>
+</form>
+{%- endmacro %}

@@ -1,0 +1,355 @@
+{% macro topnav(user) -%}
+<nav class="row">
+    <div class="column is-shrink is-vertically-centered has-text-center">
+        <a href="/">
+            <h2>
+                <iconify-icon icon="game-icons:dungeon-light" width="2.5rem"
+                              height="2.5rem"></iconify-icon>
+                Storyteller
+            </h2>
+        </a>
+    </div>
+    <div class="column is-shrink is-vertically-centered">
+        <small>ver. 0.2.0</small>
+    </div>
+    <div class="column is-4 is-center is-vertically-centered" hx-indicator="#request-indicator">
+        <div class="is-input-group has-bg-secondary">
+            <span>
+                <iconify-icon class="has-text-secondary" icon="gala:search" width="1.25rem"
+                              height="1.25rem"></iconify-icon>
+            </span>
+            <div class="has-dropdown" style="width:100%;">
+                <input type="text" autocomplete="off" class="has-bg-secondary has-text-white"
+                       type="search" name="query" hx-post="/api/nav/search" hx-target="#nav-search"
+                       hx-trigger="input changed delay:500ms, search"
+                       hx-on:input="this.value.length < 3 ? this.closest('.has-dropdown').classList.remove('is-active'):this.closest('.has-dropdown').classList.add('is-active')">
+                <ul class="dropdown has-bg-light" id="nav-search">
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="column is-shrink is-tablet-up is-vertically-centered">
+        <a href="/">
+            <h4>
+                {% if user and user.state != "guest"%}
+                {{user.name | title}}
+                {% endif %}
+            </h4>
+        </a>
+    </div>
+    <div class="column is-shrink is-vertically-centered">
+        {% if not user or user.state == "guest" %}
+        <a href="/auth/login" class="button is-rounded is-small">Login</a>
+        {% else %}
+        <a href="/auth/logout" class="button is-rounded is-small">Logout</a>
+        {% endif %}
+    </div>
+    {% if user and user.admin %}
+    <div class="column is-shrink is-tablet-up is-vertically-centered">
+        <a class="button is-small is-rounded" href="/admin/">
+            ADMIN
+        </a>
+    </div>
+    {% endif %}
+</nav>
+{%- endmacro %}
+
+{% macro nav_dropdown(user, obj, objs=[]) -%}
+{% for o in objs %}
+<li class="dropdown__link">
+    <a href='/{{o.model_name() | lower}}/{{o.pk}}' target='_blank'>
+        <div class=" row">
+            <div class="column is-shrink">
+                <div class="image is-tiny is-thumbnail" style="cursor: pointer">
+                    {% if o.image %}
+                    <img src=" {{o.image.url(size=50)}}" alt="{{o.name}}" />
+                    {% endif %}
+                </div>
+            </div>
+            <div class="column">
+                {{o.name}}
+            </div>
+        </div>
+    </a>
+</li>
+{% endfor %}
+{%- endmacro%}
+
+{% macro sidemenu_active(user, obj) -%}
+<div id="sidenav"
+     class="is-tablet-up has-bg-secondary has-no-padding-bottom has-no-padding-right slide-it-in"
+     style='position:relative; z-index:1001; padding-top:1rem;border-radius: 0 10px 10px 0;border-right: solid;border-top: solid;border-bottom: solid;'>
+    <div class="row ">
+        <div class="column has-no-padding-bottom is-vertically-centered">
+            <div class="row slide-it-in">
+                <div id="collapse-sidemenu"
+                     class="column is-mobile-only is-mobile-2 is-end menu-anchor-text is-hidden">
+                    <iconify-icon icon="material-symbols:close" width="2rem"
+                                  height="2rem"></iconify-icon>
+                </div>
+            </div>
+        </div>
+    </div>
+    <nav class="menu is-active" id="model-menu-container">
+        <ul class="menu__list">
+            <li>
+                <a href="/{{obj.get_world().path}}" class="menu-anchor">
+                    <div class="row">
+                        <div class="column is-3 is-mobile-shrink">
+                            <iconify-icon icon="mdi:world" width="1rem"></iconify-icon>
+                        </div>
+                        <div
+                             class="column is-9 is-mobile-9 is-hidden slide-it-in menu-anchor-text">
+                            <h4>{{obj.get_world().name}}</h4>
+                        </div>
+                    </div>
+                </a>
+            </li>
+            {% if user.world_user(obj) %}
+            <li>
+                <a href="" class="menu-anchor"
+                   hx-post="/api/autogm/{{obj.pk}}" hx-target="#page-content"
+                   hx-indicator="#request-indicator" hx-swap="innerHTML show:#page-content:top"
+                   hx-push-url="/{{obj.path}}/gm">
+                    <div class="row">
+                        <div class="column is-3 is-mobile-shrink">
+                            <iconify-icon icon="la:dice-d20" width="1rem"></iconify-icon>
+                        </div>
+                        <div
+                             class="column is-9 is-mobile-9 is-hidden slide-it-in menu-anchor-text">
+                            <span>GM</span>
+                        </div>
+                    </div>
+                </a>
+            </li>
+            {% endif %}
+        </ul>
+        <p class="menu__divider"></p>
+        <ul class="menu__list">
+            <li>
+                <a href="" class="menu-anchor"
+                   hx-get="/api/{{obj.path}}/details" hx-target="#page-content"
+                   hx-indicator="#request-indicator" hx-swap="innerHTML show:#page-content:top"
+                   hx-push-url="/{{obj.path}}/details">
+                    <div class="row">
+                        <div class="column is-3 is-mobile-shrink">
+                            <iconify-icon icon="ooui:view-details-ltr" width="1rem"></iconify-icon>
+                        </div>
+                        <div
+                             class="column is-9 is-mobile-9 is-hidden slide-it-in menu-anchor-text">
+                            <span>Details</span>
+                        </div>
+                    </div>
+                </a>
+            </li>
+            <li>
+                <a href="" class="menu-anchor"
+                   hx-get="/api/{{obj.path}}/history"
+                   hx-target="#page-content"
+                   hx-indicator="#request-indicator" hx-swap="innerHTML show:#page-content:top"
+                   hx-push-url="/{{obj.path}}/history">
+                    <div class="row">
+                        <div class="column is-3 is-mobile-shrink">
+                            <iconify-icon icon="material-symbols:history-edu-outline-rounded"
+                                          width="1rem"></iconify-icon>
+                        </div>
+                        <div
+                             class="column is-9 is-mobile-9 is-hidden slide-it-in menu-anchor-text">
+                            <span>History</span>
+                        </div>
+                    </div>
+                </a>
+            </li>
+            <li>
+                <a href="" class="menu-anchor"
+                   hx-get="/api/{{obj.path}}/campaigns"
+                   hx-target="#page-content"
+                   hx-indicator="#request-indicator"
+                   hx-swap="innerHTML show:#page-content:top"
+                   hx-push-url="/{{obj.path}}/campaigns">
+                    <div class="row">
+                        <div class="column is-3 is-mobile-shrink">
+                            <iconify-icon icon="gis:bus-map" width="1rem"></iconify-icon>
+                        </div>
+                        <div
+                             class="column is-9 is-mobile-9 is-hidden slide-it-in menu-anchor-text">
+                            <span>Campaigns</span>
+                        </div>
+                    </div>
+                </a>
+            </li>
+            {% if user.world_user(obj) %}
+            <li>
+                <a href="" class="menu-anchor"
+                   hx-get="/api/{{obj.path}}/journal" hx-target="#page-content"
+                   hx-indicator="#request-indicator" hx-swap="innerHTML show:#page-content:top"
+                   hx-push-url="/{{obj.path}}/journal">
+                    <div class="row">
+                        <div class="column is-3 is-mobile-shrink">
+                            <iconify-icon icon="ooui:journal-ltr" width="1rem"></iconify-icon>
+                        </div>
+                        <div
+                             class="column is-9 is-mobile-9 is-hidden slide-it-in menu-anchor-text">
+                            <span>Journal</span>
+                        </div>
+                    </div>
+                </a>
+            </li>
+            <li>
+                <a href="" class="menu-anchor" hx-get="/api/{{obj.path}}/map"
+                   hx-target="#page-content" hx-indicator="#request-indicator"
+                   hx-swap="innerHTML show:#page-content:top" hx-push-url="/{{obj.path}}/map">
+                    <div class="row">
+                        <div class="column is-3 is-mobile-shrink">
+                            <iconify-icon icon="gis:hex-map" width="1rem"></iconify-icon>
+                        </div>
+                        <div
+                             class="column is-9 is-mobile-9 is-hidden slide-it-in menu-anchor-text">
+                            <span>Map</span>
+                        </div>
+                    </div>
+                </a>
+            </li>
+            {% endif %}
+        </ul>
+        <p class="menu__divider"></p>
+        <span hx-get="/api/nav/sidemenu/{{obj.path}}"
+              hx-trigger="load"
+              hx-swap="outerHTML">
+        </span>
+        <p class="menu__divider"></p>
+        {% if user.world_user(obj) %}
+        <ul class="menu__list">
+            <li>
+                <a href="" class="menu-anchor"
+                   hx-get="/api/{{obj.path}}/associations"
+                   hx-target="#page-content"
+                   hx-indicator="#request-indicator"
+                   hx-swap="innerHTML show:#page-content:top"
+                   hx-push-url="/{{obj.path}}/associations">
+                    <div class="row">
+                        <div class="column is-3 is-mobile-shrink">
+                            <iconify-icon icon="hugeicons:chart-relationship"
+                                          width="1rem"></iconify-icon>
+                        </div>
+                        <div
+                             class="column is-9 is-mobile-9 is-hidden slide-it-in menu-anchor-text">
+                            <span>Associations</span>
+                        </div>
+                    </div>
+                </a>
+            </li>
+        </ul>
+        {% endif %}
+        <ul class="menu__list" id='child-object-submenu'>
+            {% for model in obj.all_models_str() %}
+            {% if obj.has_associations(model) %}
+            <li>
+                <div class="row" style='position:relative;'>
+                    <div class="column has-no-padding">
+                        <a href="/{{obj.path}}/associations/{{model | lower}}" class="menu-anchor"
+                           hx-get="/api/{{obj.path}}/associations/{{model | lower}}"
+                           hx-target="#page-content"
+                           hx-indicator="#request-indicator"
+                           hx-swap="innerHTML show:#content:top"
+                           hx-push-url="/{{obj.path}}/associations/{{model | lower}}">
+                            <div class="row">
+                                <div class="column is-3 is-mobile-shrink">
+                                    <iconify-icon icon="{{obj.get_icon(model)}}"
+                                                  width="1rem"></iconify-icon>
+                                </div>
+                                <div
+                                     class="column is-9 is-mobile-9 is-hidden slide-it-in menu-anchor-text">
+                                    <span>{{obj.get_title(model)}}</span>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </li>
+            {% endif %}
+            {% endfor %}
+        </ul>
+        <p class="menu__divider is-hidden slide-it-in menu-anchor-text"></p>
+        <p class="menu__title has-text-center is-hidden slide-it-in menu-anchor-text">Geneology</p>
+        <ul class="menu__list is-hidden slide-it-in menu-anchor-text">
+            {% if obj.parent %}
+            {% for ancestor in obj.geneology %}
+            <li>
+                <a href="/{{ancestor.path}}">
+                    <div class="image is-medium is-thumbnail is-margin-center">
+                        {% if ancestor.image %}
+                        <img src="{{ancestor.image.url(size='100')}}" loading="lazy"
+                             alt="{{ancestor.name}}" style="width:100%; height:100%;" />
+                        {% endif %}
+
+                    </div>
+                    <h5 class="has-text-center">{{ancestor.name}}</h5>
+                </a>
+            </li>
+            {% endfor %}
+            {% else %}
+            <li>
+                <a href="/{{obj.get_world().path}}">
+                    <div class="image is-medium is-thumbnail is-margin-center">
+                        {% if obj.get_world().image %}
+                        <img src="{{obj.get_world().image.url(size='100')}}" loading="lazy"
+                             alt="{{obj.get_world().name}}" style="width:100%; height:100%;" />
+                        {% endif %}
+                    </div>
+                    <h5 class="has-text-center">{{obj.get_world().name}}</h5>
+                </a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    <script>
+        var timeout = null;
+        var sideMenu = document.getElementById('sidenav');
+        var isOpen = false;
+        if ((window.innerWidth <= 850)) {
+            htmx.find('#mobile-menu-burger').addEventListener("click", (event) => {
+                var sidenav = htmx.find("#sidenav");
+                sidenav.style.position = "absolute";
+                sidenav.classList.remove("is-tablet-up");
+                sidenav.scrollIntoView(alignToTop = true, scrollIntoViewOptions = { behavior: 'smooth' });
+                htmx.find("#mobile-menu-burger").classList.add("is-hidden");
+                Array.from(sidenav.querySelectorAll('.menu-anchor-text')).forEach(el => el.classList.remove('is-hidden'));
+            });
+            sideMenu.addEventListener("click", (event) => {
+                event.stopImmediatePropagation();
+                var sidenav = htmx.find("#sidenav");
+                sidenav.style.position = "static";
+                sidenav.classList.add("is-tablet-up");
+                htmx.find("#mobile-menu-burger").classList.remove("is-hidden");
+            });
+        } else {
+            sideMenu.addEventListener("pointerenter", (event) => {
+                timeout = setTimeout(() => {
+                    Array.from(sideMenu.querySelectorAll('.menu-anchor-text')).forEach(el => el.classList.remove('is-hidden'));
+                }, 400);
+            });
+            sideMenu.addEventListener("pointerleave", (event) => {
+                Array.from(sideMenu.querySelectorAll('.menu-anchor-text')).forEach(el => {
+                    el.classList.add('is-hidden');
+                });
+                isOpen = !isOpen;
+                clearTimeout(timeout);
+            });
+            sideMenu.addEventListener("click", (event) => {
+                event.stopImmediatePropagation();
+                Array.from(sideMenu.querySelectorAll('.menu-anchor-text')).forEach(el => {
+                    if (isOpen) {
+                        el.classList.add('is-hidden');
+                    } else {
+                        //sideMenu.style.position = "absolute";
+                        el.classList.remove('is-hidden');
+                    }
+                });
+                isOpen = !isOpen;
+                clearTimeout(timeout);
+            });
+        }
+    </script>
+</div>
+{%- endmacro %}
