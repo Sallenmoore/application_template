@@ -1,7 +1,7 @@
 from flask import request
 
 from autonomous import log
-from autonomous.models.automodel import AutoModel
+from autonomous.model.automodel import AutoModel
 from models.user import User
 
 
@@ -36,9 +36,12 @@ def loader(
         user = User.get(user)
     # log(user)
     # get obj
-    obj = AutoModel.get_model(
-        model or request_data.get("model", None), pk or request_data.get("pk", None)
-    )
+    try:
+        Model = AutoModel.load_model(model or request_data.get("model", None))
+        obj = Model.get(pk or request_data.get("pk", None))
+    except ValueError as e:
+        log(e)
+        obj = None
     # log(obj)
     # get world
     return user, obj

@@ -1,10 +1,8 @@
-import io
 import os
 
 import requests
 from flask import (
     Blueprint,
-    Response,
     render_template,
     request,
     session,
@@ -12,6 +10,7 @@ from flask import (
 
 from autonomous import log
 from autonomous.auth import AutoAuth, auth_required
+from autonomous.model.automodel import AutoModel
 
 index_page = Blueprint("index", __name__)
 
@@ -34,13 +33,9 @@ def _authenticate(user, obj):
 @auth_required()
 def index():
     user = AutoAuth.current_user()
-    for w in World.all():
-        w.users += [user]
-        w.save()
-
-    user = AutoAuth.current_user()
     session["page"] = "/home"
     return render_template("index.html", user=user, page_url="/home")
+
 
 @index_page.route("/<string:model>/<string:pk>", methods=("GET", "POST"))
 @index_page.route("/<string:model>/<string:pk>/<path:page>", methods=("GET", "POST"))
@@ -48,7 +43,7 @@ def index():
 def page(model, pk, page=""):
     user = AutoAuth.current_user()
     session["page"] = f"/{model}/{pk}/{page or 'details'}"
-    if obj := World.get_model(model, pk):
+    if obj := AutoModel.get_model(model, pk):
         session["model"] = model
         session["pk"] = pk
     return render_template("index.html", user=user, obj=obj, page_url=session["page"])
@@ -80,7 +75,7 @@ def api(rest_path):
         if "admin/" in url and user.is_admin:
             response = requests.post(url, json=request.json).text
         elif request.json.get("model") and request.json.get("pk"):
-            obj = World.get_model(request.json.get("model"), request.json.get("pk"))
+            obj = AutoModel.get_model(request.json.get("model"), request.json.get("pk"))
             if _authenticate(user, obj):
                 response = requests.post(url, json=request.json).text
         else:
@@ -93,7 +88,7 @@ def api(rest_path):
 @auth_required()
 def tasks(rest_path):
     user = AutoAuth.current_user()
-    obj = World.get_model(request.json.get("model")).get(request.json.get("pk"))
+    obj = AutoModel.get_model(request.json.get("model")).get(request.json.get("pk"))
     if _authenticate(user, obj):
         log(request.json)
         response = requests.post(
